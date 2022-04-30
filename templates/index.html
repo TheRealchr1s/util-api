@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+  <meta charset="utf-8">
+  <script>hljs.highlightAll();</script>
+  <meta property="og:title" content="Example API" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://example.com" />
+  <meta property="og:description" content="This is an example API" />
+  <meta name="theme-color" content="#7673C0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <style>
+    :root {
+      --maingradient: linear-gradient(to right, #834d9b, #d04ed6);
+    }
+
+    button {
+        background: var(--maingradient);
+        color: var(--maingradient);
+     }
+
+    body {
+        background: var(--maingradient);
+        color: var(--maingradient);
+        margin-top: 5rem;
+      }
+    
+    h1, h2, h3, h4, h5, h6 {
+      color: #000000;
+    }
+    
+    ul {
+      margin: 0;
+    }
+    
+    .site-header .navbar-nav .nav-link {
+      color: #FFFFFF;
+    }
+
+    .navbar {
+      box-shadow: 0 2px 4px 0 rgba(0,0,0,.4);
+    }
+
+    .site-header .navbar-nav .nav-link:hover {
+      color: #FFFFFF;
+    }
+    
+    .site-header .navbar-nav .nav-link.active {
+      font-weight: 500;
+    }
+    
+    .content-section {
+      background: #ffffff;
+      padding: 10px 20px;
+      border: 1px solid #dddddd;
+      border-radius: 3px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px 0 rgba(0,0,0,.2);
+    }
+    
+    .article-title {
+      color: #444444;
+    }
+
+    .bg-steel {
+      background-color: #2F3136;
+    }
+
+    a.article-title:hover {
+      color: #428bca;
+      text-decoration: none;
+    }
+    
+    .article-content {
+      white-space: pre-line;
+    }
+    
+    .article-img {
+      height: 65px;
+      width: 65px;
+      margin-right: 16px;
+    }
+    
+    .article-metadata {
+      padding-bottom: 1px;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #e3e3e3
+    }
+    
+    .article-metadata a:hover {
+      color: #333;
+      text-decoration: none;
+    }
+    
+    .article-svg {
+      width: 25px;
+      height: 25px;
+      vertical-align: middle;
+    }
+    
+    .account-img {
+      height: 125px;
+      width: 125px;
+      margin-right: 20px;
+      margin-bottom: 16px;
+    }
+    .account-heading {
+      font-size: 2.5rem;
+    }
+    
+    .link {
+            color:#B62E43;
+            text-decoration: none; 
+            background-color: none;
+    }
+
+    .rounded-endpoint {
+      border-radius: 10px;
+    }
+
+    .tryit-btn {
+      border-radius: 15px;
+      background: var(--maingradient);
+      color: white;
+      border: white;
+      margin-left: 5px;
+      display: inline;
+      font-size: 14px;
+    }
+    
+    .resp {
+      float: left;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+  </style>
+  <title>Example</title>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+      <div class="container">
+        <a class="navbar-brand mr-4" href="/">Example</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarToggle">
+          <div class="navbar-nav mr-auto">
+          </div>
+          <div class="navbar-nav">
+            <a class="navbar-brand mr-4" href="/" style="font-size: 15px">Login</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <h1 style="text-align: center; color: white;">Example</h1>
+  <p style="text-align: center; color: white;">Example subtext</p>
+  <main role="main" class="container">
+    <div class="row">
+      <div class="col-md-8"></div>
+      <div class="col-md-4">
+      </div>
+    </div>
+
+    <article class="media content-section" style="border-radius: 20px;">
+      <div class="media-body">
+        <h2>v1 Endpoint Overview</h2>
+        <div class="article-content container">
+          <h5>Endpoint 1<br><code>/api/v1/endpoint1</code></h5>
+            This endpoint requires no URL parameters.
+            Example request:
+            <pre><code class="language-json resp">GET /api/v1/endpoint1
+
+{"i":"https://imgur.com/xyz"}</code></pre>
+            <button class="tryit-btn">Try it out ►</button>
+        </div>
+        <p>Example API</p>
+      </h1>
+      </div>
+    </article>
+      </h1>
+      </div>
+  </main>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>
