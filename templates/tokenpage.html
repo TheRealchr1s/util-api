@@ -3,10 +3,7 @@
 <head>
   <meta charset="utf-8">
   <link rel="shortcut icon" href="/favicon.ico" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
   <meta charset="utf-8">
-  <script>hljs.highlightAll();</script>
   <meta property="og:title" content="Example API" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://example.com" />
@@ -135,6 +132,10 @@
       background-color: white;
     }
 
+    #rounded {
+      border-radius: 20px;
+    }
+
     .nav-elem {
       font-size: 15px;
     }
@@ -147,26 +148,45 @@
     .nobreak {
       white-space: nowrap;
     }
+
+    #token-inp {
+      width: 35ch;
+    }
   </style>
   <script>
-        function sleep(time) {
-            return new Promise((resolve) => setTimeout(resolve, time));
-        }
-        function copyToken() {
-            var copyText = document.getElementById("tokenField");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(copyText.value);
-            // button stuff
-            var copyButton = document.getElementById("copy-btn");
-            copyButton.innerText = "✓ Copied";
-            sleep(2000).then(() => {
-                copyButton.innerText = "Copy to clipboard";
-            })
-        }
-        function resetToken() {
-
-        }
+    function sleep(time) {
+        return new Promise((resolve) => setTimeout(resolve, time));
+    }
+    function copyToken() {
+        var copyText = document.getElementById("tokenField");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        var copyButton = document.getElementById("copy-btn");
+        copyButton.innerText = "✓ Copied";
+        sleep(2000).then(() => {
+            copyButton.innerText = "Copy to clipboard";
+        })
+    }
+    function resetToken() {
+      var copyText = document.getElementById("tokenField");
+      var regenButton = document.getElementById("reset-btn");
+      fetch("v1/reset-token", {
+        method: "POST",
+        headers: {"Authorization": "{{ authtoken }}"},
+      })
+      .then(res => {return res.json()})
+      .then(data => {
+        if (data["t"]) {copyText.value = data["t"];}
+        regenButton.disabled = true;
+        regenButton.innerText = "✓ Regenerated";
+        sleep(300000).then(() => {
+          regenButton.disabled = false;
+          regenButton.innerText = "Regenerate";
+        })
+      }
+      );
+    }
   </script>
   <title>Example</title>
 </head>
@@ -200,19 +220,13 @@
       </div>
     </div>
 
-    <article class="media content-section" style="border-radius: 20px;">
+    <article class="media content-section" id="rounded">
       <div class="media-body">
         <h2>API Token</h2>
         <div class="article-content container">
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <button id="copy-btn" class="btn btn-outline-primary" type="button" onclick="copyToken();">Copy to clipboard</button>
-                </div>
-                <input id="tokenField" readonly="readonly" type="text" class="form-control" value="token38839">
-                <div class="input-group-append">
-                    <button class="btn btn-outline-danger" type="button">Reset token</button>
-                </div>
-              </div>
+            <div id="token-inp" class="input-group mb-3">
+                <input id="tokenField" readonly="readonly" type="text" class="form-control token-box" value="{{ token }}">
+              </div><div class="btn-group" role="group"><button id="copy-btn" class="btn btn-outline-primary" type="button" onclick="copyToken();">Copy to clipboard</button><button class="btn btn-outline-danger" type="button" id="reset-btn" onclick="resetToken();">Regenerate</button></div>
         </div>
         <p></p>
       </h1>

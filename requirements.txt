@@ -1,3 +1,4 @@
 quart
 gunicorn
 thefuzz[speedup]
+Quart-Discord

@@ -114,9 +114,9 @@
     }
     
     .link {
-            color:#B62E43;
-            text-decoration: none; 
-            background-color: none;
+      color:#B62E43;
+      text-decoration: none; 
+      background-color: none;
     }
 
     .rounded-endpoint {
@@ -180,12 +180,15 @@
         <div class="collapse navbar-collapse" id="navbarToggle">
           <div class="navbar-nav mr-auto">
           </div>
-          <div class="navbar-nav">
-            <a class="navbar-brand mr-4 nav-elem" href="/">Login</a>
-          </div>
-          <div class="navbar-nav" hidden>
-            <a class="navbar-brand mr-4 nav-elem" href="/">Manage token</a>
-          </div>
+          {% if user %}
+            <div class="navbar-nav">
+              <a class="navbar-brand mr-4 nav-elem" href="/token">Manage token</a>
+            </div>
+          {% else %}
+            <div class="navbar-nav">
+              <a class="navbar-brand mr-4 nav-elem" href="/login">Login</a>
+            </div>
+          {% endif %}
         </div>
       </div>
     </nav>
@@ -203,9 +206,9 @@
       <div class="media-body">
         <h2>Endpoint Overview</h2>
         <div class="article-content container">
-          <h5>Endpoint 1<button type="button" class="btn btn-outline-danger auth-btn btn-sm">Requires authorization</button><pre class="endp-wrapper"><code class="resp endp-wrapper">/api/v1/endpoint1</code></pre></h5>Returns an image.
+          <h5>Endpoint 1<button type="button" class="btn btn-outline-danger auth-btn btn-sm">Requires authorization</button><pre class="endp-wrapper"><code class="resp endp-wrapper">/v1/endpoint1</code></pre></h5>Returns an image.
           This endpoint requires no URL parameters.
-          Example request:<pre><code class="language-json resp">GET /api/v1/endpoint1
+          Example request:<pre><code class="language-json resp">GET /v1/endpoint1
 
 {"i": "https://some.imageserver.example.com/xyz"}</code></pre><button class="tryit-btn">Try it out ►</button>
         </div>
