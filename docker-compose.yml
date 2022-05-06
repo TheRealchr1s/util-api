@@ -1,0 +1,40 @@
+version: '3.9'
+
+networks:
+  apinetwork:
+      external: false
+
+services:
+  apiweb:
+    build: .
+    command: gunicorn main:app --bind 0.0.0.0:7676
+    depends_on:
+      - apinginx
+      - apidb
+    networks:
+      - apinetwork
+    restart:
+      "unless-stopped"
+  
+  apidb:
+    image: postgres
+    restart: "unless-stopped"
+    environment:
+      POSTGRES_PASSWORD: secretapidbpw292
+  
+  apiredis:
+    image: redis
+    command: "rm -f /data/dump.rdb && redis-server --save '' --appendonly no"
+
+  apinginx:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/crrapi.cf.conf:ro
+      - ./crrapi.cf.key:/etc/nginx/ssl/crrapi.cf.key:ro
+      - ./crrapi.cf.crt:/etc/nginx/ssl/crrapi.cf.crt:ro
+    ports:
+      - "8888:443"
+    networks:
+      - apinetwork
+    restart:
+      "unless-stopped"

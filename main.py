@@ -1,6 +1,7 @@
 import quart
 from quart_discord import DiscordOAuth2Session, requires_authorization, Unauthorized
 import quart_rate_limiter
+from quart_rate_limiter.redis_store import RedisStore
 import json
 
 from blueprints.v1 import v1_api
@@ -15,13 +16,11 @@ with open("config.json", "r") as f:
 
 app = quart.Quart(__name__)
 app.register_blueprint(v1_api)
-
-
-#redis_store = quart_rate_limiter.redis_store.RedisStore("xyz")
-app.rate_limiter = quart_rate_limiter.RateLimiter(app) #store=redis_store)
+app.rate_limiter = quart_rate_limiter.RateLimiter(app, store=RedisStore(config["REDIS_URI"]))
 
 for k in config.keys():
-    app.config[k] = config[k]
+    if k.startswith("APP_"):
+        app.config[k.lstrip("APP_")] = config[k]
 
 discord = DiscordOAuth2Session(app)
 app.discord = discord
