@@ -2,3 +2,4 @@ quart
 gunicorn
 thefuzz[speedup]
 Quart-Discord
+quart-rate-limiter[redis]

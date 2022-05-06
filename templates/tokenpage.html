@@ -152,6 +152,10 @@
     #token-inp {
       width: 35ch;
     }
+
+    .subtext {
+      font-size: smaller;
+    }
   </style>
   <script>
     function sleep(time) {
@@ -175,14 +179,24 @@
         method: "POST",
         headers: {"Authorization": "{{ authtoken }}"},
       })
-      .then(res => {return res.json()})
+      .then(res => {
+        if (res.status == 429) {return {"t": "⚠️ You are being rate limited.", "c": 429}}
+        else {return res.json()}
+      })
       .then(data => {
-        if (data["t"]) {copyText.value = data["t"];}
+        if (data["t"]) {
+          copyText.value = data["t"];
+          if (data["c"] !== 429) {
+            regenButton.innerText = "✓ Regenerated";
+          }
+        }
+        else {
+          return window.location.replace("/login");
+        }
         regenButton.disabled = true;
-        regenButton.innerText = "✓ Regenerated";
         sleep(300000).then(() => {
           regenButton.disabled = false;
-          regenButton.innerText = "Regenerate";
+          regenButton.innerText = "⚠️ Regenerate";
         })
       }
       );
@@ -201,11 +215,9 @@
         <div class="collapse navbar-collapse" id="navbarToggle">
           <div class="navbar-nav mr-auto">
           </div>
-          <div class="navbar-nav">
-            <a class="navbar-brand mr-4 nav-elem" href="/">Login</a>
-          </div>
-          <div class="navbar-nav" hidden>
-            <a class="navbar-brand mr-4 nav-elem" href="/">Manage token</a>
+            <div class="navbar-nav">
+              <a class="navbar-brand mr-4 nav-elem" href="/">Endpoint Overview</a>
+            </div>
           </div>
         </div>
       </div>
@@ -224,9 +236,9 @@
       <div class="media-body">
         <h2>API Token</h2>
         <div class="article-content container">
-            <div id="token-inp" class="input-group mb-3">
+          <div id="token-inp" class="input-group mb-3">
                 <input id="tokenField" readonly="readonly" type="text" class="form-control token-box" value="{{ token }}">
-              </div><div class="btn-group" role="group"><button id="copy-btn" class="btn btn-outline-primary" type="button" onclick="copyToken();">Copy to clipboard</button><button class="btn btn-outline-danger" type="button" id="reset-btn" onclick="resetToken();">Regenerate</button></div>
+              </div><p class="subtext">Keep this token a secret! If necessary, regenerate it ASAP.<br>You will need to modify your config to use the new token.</p><div class="btn-group" role="group"><button id="copy-btn" class="btn btn-outline-primary" type="button" onclick="copyToken();">Copy to clipboard</button><button class="btn btn-outline-danger" type="button" id="reset-btn" onclick="resetToken();">⚠️ Regenerate</button></div>
         </div>
         <p></p>
       </h1>

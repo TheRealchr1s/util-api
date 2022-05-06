@@ -1,5 +1,6 @@
 import quart
 from quart_discord import DiscordOAuth2Session, requires_authorization, Unauthorized
+import quart_rate_limiter
 import json
 
 from blueprints.v1 import v1_api
@@ -15,6 +16,10 @@ with open("config.json", "r") as f:
 app = quart.Quart(__name__)
 app.register_blueprint(v1_api)
 
+
+#redis_store = quart_rate_limiter.redis_store.RedisStore("xyz")
+app.rate_limiter = quart_rate_limiter.RateLimiter(app) #store=redis_store)
+
 for k in config.keys():
     app.config[k] = config[k]
 
@@ -23,7 +28,7 @@ app.discord = discord
 
 @app.errorhandler(Unauthorized)
 async def redirect_unauthorized(e):
-    return await discord.create_session()
+    return await discord.create_session(scope=["identify", "email"])
 
 @app.route("/")
 async def index():
@@ -45,7 +50,7 @@ async def callback():
 @requires_authorization
 async def token_route():
     user = await discord.get_authorization_token()
-    return await quart.render_template("tokenpage.html", authtoken=user["access_token"])
+    return await quart.render_template("tokenpage.html", authtoken=user["access_token"], token="Example")
 
 if __name__ == "__main__":
     app.run(host="localhost", port=7777, debug=True)
