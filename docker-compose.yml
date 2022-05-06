@@ -24,7 +24,7 @@ services:
   
   apiredis:
     image: redis
-    command: "rm -f /data/dump.rdb && redis-server --save '' --appendonly no"
+    restart: unless-stopped
 
   apinginx:
     image: nginx
