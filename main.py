@@ -50,5 +50,10 @@ async def token_route():
     user = await discord.get_authorization_token()
     return await quart.render_template("tokenpage.html", authtoken=user["access_token"], token="Example")
 
+@app.route("/demo")
+@requires_authorization
+async def demo():
+    return "WIP"
+
 if __name__ == "__main__":
     app.run(host="localhost", port=7777, debug=True)
