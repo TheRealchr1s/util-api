@@ -6,6 +6,10 @@ import json
 
 from blueprints.v1 import v1_api
 
+# used between nginx and hypercorn ONLY
+import os
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
+
 with open("config.json", "r") as f:
     config = json.load(f)
 
