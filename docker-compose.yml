@@ -30,15 +30,17 @@ services:
     networks:
       - college4u_c4unetwork
 
-  pgadmin:
-    container_name: pgadmin4
-    image: biarms/pgadmin4
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: rootutil595
-    ports:
-      - "8383:5050"
+  # pgadmin:
+  #   container_name: pgadmin4
+  #   image: biarms/pgadmin4
+  #   restart: unless-stopped
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
+  #     PGADMIN_DEFAULT_PASSWORD: rootutil595
+  #   ports:
+  #     - "8383:5050"
+  #   networks:
+  #     - college4u_c4unetwork
 
   # apinginx:
   #   image: nginx
