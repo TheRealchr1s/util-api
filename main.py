@@ -3,6 +3,8 @@ from quart_discord import DiscordOAuth2Session, requires_authorization, Unauthor
 import quart_rate_limiter
 from quart_rate_limiter.redis_store import RedisStore
 import json
+import asyncpg
+import asyncio
 
 from blueprints.v1 import v1_api
 
@@ -16,6 +18,7 @@ with open("config.json", "r") as f:
 app = quart.Quart(__name__)
 app.register_blueprint(v1_api)
 app.rate_limiter = quart_rate_limiter.RateLimiter(app, store=RedisStore(config["REDIS_URI"]))
+app.db = asyncio.get_event_loop().run_until_complete(asyncpg.create_pool(config["POSTGRES_URI"]))
 
 for k in config.keys():
     if k.startswith("APP_"):
@@ -53,7 +56,7 @@ async def token_route():
 @app.route("/demo")
 @requires_authorization
 async def demo():
-    return "WIP"
+    return "wip"
 
 if __name__ == "__main__":
     app.run(host="localhost", port=7777, debug=True)

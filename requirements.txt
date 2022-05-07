@@ -5,3 +5,4 @@ thefuzz[speedup]
 Quart-Discord
 quart-rate-limiter[redis]
 discord.py
+asyncpg
