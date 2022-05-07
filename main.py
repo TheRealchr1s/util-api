@@ -6,11 +6,6 @@ import json
 
 from blueprints.v1 import v1_api
 
-# dev env only
-import os
-os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
-# REMOVE IN PROD
-
 with open("config.json", "r") as f:
     config = json.load(f)
 
