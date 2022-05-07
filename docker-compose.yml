@@ -32,13 +32,13 @@ services:
 
   pgadmin:
     container_name: pgadmin4
-    image: dpage/pgadmin4
+    image: biarms/pgadmin4
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: rootutil595
     ports:
-      - "8383:80"
+      - "8383:5050"
 
   # apinginx:
   #   image: nginx
