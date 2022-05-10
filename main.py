@@ -18,7 +18,14 @@ with open("config.json", "r") as f:
 app = quart.Quart(__name__)
 app.register_blueprint(v1_api)
 app.rate_limiter = quart_rate_limiter.RateLimiter(app, store=RedisStore(config["REDIS_URI"]))
-app.db = asyncio.get_event_loop().run_until_complete(asyncpg.create_pool(config["POSTGRES_URI"]))
+
+async def init_postgres():
+    app.db = await asyncpg.create_pool(config["POSTGRES_URI"])
+    async with app.db.acquire() as conn:
+        await conn.execute("CREATE TABLE IF NOT EXISTS tokens (token VARCHAR(15), id BIGINT);")
+
+if config.get("POSTGRES_URI"):
+    asyncio.get_event_loop().run_until_complete(init_postgres())
 
 for k in config.keys():
     if k.startswith("APP_"):
@@ -53,10 +60,10 @@ async def token_route():
     user = await discord.get_authorization_token()
     return await quart.render_template("tokenpage.html", authtoken=user["access_token"], token="Example")
 
-@app.route("/demo")
+@app.route("/demo/<end>")
 @requires_authorization
-async def demo():
-    return "wip"
+async def demo(end):
+    return f"{quart.request.url_root}{end}?{quart.request.query_string.decode()}".rstrip("?")
 
 if __name__ == "__main__":
     app.run(host="localhost", port=7777, debug=True)

@@ -9,7 +9,7 @@
   <script>hljs.highlightAll();</script>
   <meta property="og:title" content="Example API" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://example.com" />
+  <meta property="og:url" content="https://api.crrapi.cf" />
   <meta property="og:description" content="This is an example API" />
   <meta name="theme-color" content="#7673C0" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -210,7 +210,7 @@
           This endpoint requires no URL parameters.
           Example request:<pre><code class="language-json resp">GET /v1/endpoint1
 
-{"i": "https://some.imageserver.example.com/xyz"}</code></pre><a class="btn btn-outline-primary" href="{{ url_for('demo') }}">Try it out ►</a>
+{"i": "https://some.imageserver.example.com/xyz"}</code></pre><a class="btn btn-outline-primary" href="{{ url_for('demo', end='endpoint1', arg1=['test']) }}">Try it out ►</a>
         </div>
         <p></p>
       </h1>
