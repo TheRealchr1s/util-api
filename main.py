@@ -70,7 +70,7 @@ async def callback():
 @app.route("/token")
 @requires_authorization
 async def token_route():
-    user = await discord.get_authorization_token()
+    user = await discord.fetch_user()
     token = app.token_cache.get(user.id)
     # async with quart.current_app.db.acquire() as connection:
     #     token = (await connection.fetchrow("SELECT token FROM tokens WHERE id = $1", user.id)).get("token")
