@@ -7,6 +7,8 @@ import asyncpg
 import asyncio
 import secrets
 import uvloop
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 from blueprints.v1 import v1_api
 
@@ -17,17 +19,22 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
 with open("config.json", "r") as f:
     config = json.load(f)
 
+if config.get("SENTRY_DSN"):
+    sentry_sdk.init(dsn=config["SENTRY_DSN"], integrations=[FlaskIntegration()], traces_sample_rate=0.7)
 app = quart.Quart(__name__)
 app.register_blueprint(v1_api)
 app.rate_limiter = quart_rate_limiter.RateLimiter(app, store=RedisStore(config["REDIS_URI"]))
 app.token_cache = dict()
 
-async def init_postgres():
-    app.db = await asyncpg.create_pool(config["POSTGRES_URI"])
-    async with app.db.acquire() as conn:
-        await conn.execute("CREATE TABLE IF NOT EXISTS tokens (token VARCHAR(15), id BIGINT);")
-        for entry in (await conn.fetch("SELECT * FROM tokens;")):
-            app.token_cache[entry.get("id")] = entry.get("token")
+
+if config.get("POSTGRES_URI"):
+    @app.before_serving
+    async def init_postgres():
+        app.db = await asyncpg.create_pool(config["POSTGRES_URI"])
+        async with app.db.acquire() as conn:
+            await conn.execute("CREATE TABLE IF NOT EXISTS tokens (token VARCHAR(15), id BIGINT);")
+            for entry in (await conn.fetch("SELECT * FROM tokens;")):
+                app.token_cache[entry.get("id")] = entry.get("token")
 
 async def gen_token(user):
     token = secrets.token_urlsafe(15)
@@ -40,9 +47,8 @@ async def gen_token(user):
 
 app.gen_token = gen_token
 
-if config.get("POSTGRES_URI"):
-    # asyncio.get_event_loop().run_until_complete(init_postgres())
-    app.add_background_task(init_postgres)
+# asyncio.get_event_loop().run_until_complete(init_postgres())
+# app.add_background_task(init_postgres())
 
 for k in config.keys():
     if k.startswith("APP_"):
