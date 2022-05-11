@@ -25,7 +25,7 @@ async def init_postgres():
     app.db = await asyncpg.create_pool(config["POSTGRES_URI"])
     async with app.db.acquire() as conn:
         await conn.execute("CREATE TABLE IF NOT EXISTS tokens (token VARCHAR(15), id BIGINT);")
-        for entry in (await conn.fetchall("SELECT * FROM tokens;")):
+        for entry in (await conn.fetch("SELECT * FROM tokens;")):
             app.token_cache[entry.get("id")] = entry.get("token")
 
 async def gen_and_save_token(user):
