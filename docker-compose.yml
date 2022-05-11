@@ -7,7 +7,7 @@ networks:
 services:
   apiweb:
     build: .
-    command: hypercorn main:app --bind 0.0.0.0:7676
+    command: hypercorn main:app --worker-class uvloop --bind 0.0.0.0:7676
     depends_on:
       # - apinginx
       apidb:

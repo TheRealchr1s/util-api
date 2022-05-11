@@ -6,6 +6,7 @@ import json
 import asyncpg
 import asyncio
 import secrets
+import uvloop
 
 from blueprints.v1 import v1_api
 
@@ -40,7 +41,8 @@ async def gen_token(user):
 app.gen_token = gen_token
 
 if config.get("POSTGRES_URI"):
-    asyncio.get_event_loop().run_until_complete(init_postgres())
+    # asyncio.get_event_loop().run_until_complete(init_postgres())
+    app.add_background_task(init_postgres)
 
 for k in config.keys():
     if k.startswith("APP_"):
@@ -86,4 +88,5 @@ async def demo(end):
     return f"{quart.request.url_root}{end}?{quart.request.query_string.decode()}".rstrip("?")
 
 if __name__ == "__main__":
+    uvloop.install()
     app.run(host="localhost", port=7777, debug=True)

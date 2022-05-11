@@ -1,4 +1,3 @@
-pip
 quart
 gunicorn
 thefuzz[speedup]
@@ -6,3 +5,4 @@ Quart-Discord
 quart-rate-limiter[redis]
 discord.py
 asyncpg
+uvloop
