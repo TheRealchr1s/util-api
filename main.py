@@ -77,7 +77,7 @@ async def token_route():
     # async with quart.current_app.db.acquire() as connection:
     #     token = (await connection.fetchrow("SELECT token FROM tokens WHERE id = $1", user.id)).get("token")
     if not token:
-        token = await app.gen_token()
+        token = await app.gen_token(user)
     return await quart.render_template("tokenpage.html", token=token)
 
 @app.route("/demo/<end>")
