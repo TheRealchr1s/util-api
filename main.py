@@ -28,7 +28,7 @@ async def init_postgres():
         for entry in (await conn.fetch("SELECT * FROM tokens;")):
             app.token_cache[entry.get("id")] = entry.get("token")
 
-async def gen_and_save_token(user):
+async def gen_token(user):
     token = secrets.token_urlsafe(15)
     async with quart.current_app.db.acquire() as connection:
             async with connection.transaction():
@@ -36,6 +36,8 @@ async def gen_and_save_token(user):
                 await connection.execute("INSERT INTO tokens VALUES ($1, $2);", token, user.id)
     app.token_cache[user.id] = token
     return token
+
+app.gen_token = gen_token
 
 if config.get("POSTGRES_URI"):
     asyncio.get_event_loop().run_until_complete(init_postgres())
