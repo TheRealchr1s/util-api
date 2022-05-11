@@ -175,10 +175,7 @@
     function resetToken() {
       var copyText = document.getElementById("tokenField");
       var regenButton = document.getElementById("reset-btn");
-      fetch("v1/reset-token", {
-        method: "POST",
-        headers: {"Authorization": "{{ authtoken }}"},
-      })
+      fetch("v1/reset-token", {method: "POST"})
       .then(res => {
         if (res.status == 429) {return {"t": "⚠️ You are being rate limited.", "c": 429}}
         else {return res.json()}

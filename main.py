@@ -5,6 +5,7 @@ from quart_rate_limiter.redis_store import RedisStore
 import json
 import asyncpg
 import asyncio
+import secrets
 
 from blueprints.v1 import v1_api
 
@@ -23,6 +24,14 @@ async def init_postgres():
     app.db = await asyncpg.create_pool(config["POSTGRES_URI"])
     async with app.db.acquire() as conn:
         await conn.execute("CREATE TABLE IF NOT EXISTS tokens (token VARCHAR(15), id BIGINT);")
+
+async def gen_and_save_token(user):
+    token = secrets.token_urlsafe(15)
+    async with quart.current_app.db.acquire() as connection:
+            async with connection.transaction():
+                await connection.execute("DELETE FROM tokens WHERE id = $1;", user.id)
+                await connection.execute("INSERT INTO tokens VALUES ($1, $2);", token, user.id)
+    return token
 
 if config.get("POSTGRES_URI"):
     asyncio.get_event_loop().run_until_complete(init_postgres())
@@ -58,7 +67,11 @@ async def callback():
 @requires_authorization
 async def token_route():
     user = await discord.get_authorization_token()
-    return await quart.render_template("tokenpage.html", authtoken=user["access_token"], token="Example")
+    async with quart.current_app.db.acquire() as connection:
+        token = (await connection.fetchrow("SELECT token FROM tokens WHERE id = $1", user.id)).get("token")
+    if not token:
+        token = await app.gen_token()
+    return await quart.render_template("tokenpage.html", token="Example")
 
 @app.route("/demo/<end>")
 @requires_authorization

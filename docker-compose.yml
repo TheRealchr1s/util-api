@@ -23,6 +23,8 @@ services:
       POSTGRES_PASSWORD: secretapidbpw292
     networks:
       - college4u_c4unetwork
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
   
   apiredis:
     image: redis

@@ -11,9 +11,6 @@ v1_api = quart.Blueprint("v1", __name__, template_folder="../templates", url_pre
 @quart_discord.requires_authorization
 @quart_rate_limiter.rate_limit(2, datetime.timedelta(minutes=5))
 async def reset_token():
-    provided = quart.request.headers.get("Authorization")
-    actual = (await quart.current_app.discord.get_authorization_token())["access_token"]
-    if provided == actual:
-        return quart.Response(json.dumps({"t": "objxyz"}), mimetype="application/json")
-    else:
-        raise quart_discord.Unauthorized
+    user = await quart.current_app.discord.fetch_user()
+    token = await quart.current_app.gen_token(user)
+    return quart.Response(json.dumps({"t": token}), mimetype="application/json")
