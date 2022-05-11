@@ -10,7 +10,8 @@ services:
     command: hypercorn main:app --bind 0.0.0.0:7676
     depends_on:
       # - apinginx
-      - apidb
+      apidb:
+        condition: service_healthy
     networks:
       - college4u_c4unetwork
     restart:
@@ -21,10 +22,14 @@ services:
     restart: "unless-stopped"
     environment:
       POSTGRES_PASSWORD: secretapidbpw292
+      PGUSER: postgres
     networks:
       - college4u_c4unetwork
-    volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   
   apiredis:
     image: redis
