@@ -23,9 +23,13 @@ if config.get("SENTRY_DSN"):
     sentry_sdk.init(dsn=config["SENTRY_DSN"], integrations=[FlaskIntegration()], traces_sample_rate=0.7)
 app = quart.Quart(__name__)
 app.register_blueprint(v1_api)
-app.rate_limiter = quart_rate_limiter.RateLimiter(app, store=RedisStore(config["REDIS_URI"]))
-app.token_cache = dict()
 
+if config.get("REDIS_URI"):
+    app.rate_limiter = quart_rate_limiter.RateLimiter(app, store=RedisStore(config["REDIS_URI"]))
+else:
+    app.rate_limiter = quart_rate_limiter.RateLimiter(app)
+
+app.token_cache = dict()
 
 if config.get("POSTGRES_URI"):
     @app.before_serving
@@ -35,6 +39,8 @@ if config.get("POSTGRES_URI"):
             await conn.execute("CREATE TABLE IF NOT EXISTS tokens (token TEXT, id BIGINT);")
             for entry in (await conn.fetch("SELECT * FROM tokens;")):
                 app.token_cache[entry.get("id")] = entry.get("token")
+else:
+    app.token_cache[246938839720001536] = "TESTING_PURPOSES"
 
 async def gen_token(user):
     token = secrets.token_urlsafe(15)
