@@ -63,6 +63,15 @@ for k in config.keys():
 discord = DiscordOAuth2Session(app)
 app.discord = discord
 
+@app.before_request
+async def before_request_sentry():
+    user_data = {"ip_address": quart.request.remote_addr}
+    if await discord.authorized:
+        user = await discord.fetch_user()
+        user_data.update({"id": user.id, "username": str(user), "email": user.email})
+    sentry_sdk.set_user(user_data)
+    sentry_sdk.set_tag("User-Agent", quart.request.headers.get("User-Agent"))
+
 @app.errorhandler(Unauthorized)
 async def redirect_unauthorized(e):
     return await discord.create_session(scope=["identify", "email"])
@@ -97,6 +106,7 @@ async def token_route():
 @app.route("/demo/<end>")
 @requires_authorization
 async def demo(end):
+    return 1/0
     return f"{quart.request.url_root}{end}?{quart.request.query_string.decode()}".rstrip("?")
 
 if __name__ == "__main__":
