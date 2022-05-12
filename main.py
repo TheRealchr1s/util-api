@@ -1,14 +1,16 @@
+from flask import Flask
 import quart
 from quart_discord import DiscordOAuth2Session, requires_authorization, Unauthorized
 import quart_rate_limiter
 from quart_rate_limiter.redis_store import RedisStore
+from quart_cors import cors
 import json
 import asyncpg
 import asyncio
 import secrets
 import uvloop
 import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.quart import QuartIntegration
 
 from blueprints.v1 import v1_api
 
@@ -20,9 +22,13 @@ with open("config.json", "r") as f:
     config = json.load(f)
 
 if config.get("SENTRY_DSN"):
-    sentry_sdk.init(dsn=config["SENTRY_DSN"], integrations=[FlaskIntegration()], traces_sample_rate=0.7)
+    sentry_sdk.init(dsn=config["SENTRY_DSN"],
+                    integrations=[QuartIntegration(transaction_style="url")],
+                    traces_sample_rate=1.0,
+                    send_default_pii=True)
 app = quart.Quart(__name__)
 app.register_blueprint(v1_api)
+app = cors(app, allow_origin=config.get("CORS_ORIGIN"))
 
 if config.get("REDIS_URI"):
     app.rate_limiter = quart_rate_limiter.RateLimiter(app, store=RedisStore(config["REDIS_URI"]))
@@ -30,6 +36,7 @@ else:
     app.rate_limiter = quart_rate_limiter.RateLimiter(app)
 
 app.token_cache = dict()
+app.usage_cache = dict()
 
 if config.get("POSTGRES_URI"):
     @app.before_serving
@@ -65,7 +72,7 @@ app.discord = discord
 
 @app.before_request
 async def before_request_sentry():
-    user_data = {"ip_address": quart.request.remote_addr}
+    user_data = {"ip_address": quart.request.headers.get("X-Forwarded-For")}
     if await discord.authorized:
         user = await discord.fetch_user()
         user_data.update({"id": user.id, "username": str(user), "email": user.email})
@@ -106,7 +113,6 @@ async def token_route():
 @app.route("/demo/<end>")
 @requires_authorization
 async def demo(end):
-    return 1/0
     return f"{quart.request.url_root}{end}?{quart.request.query_string.decode()}".rstrip("?")
 
 if __name__ == "__main__":

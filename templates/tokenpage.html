@@ -163,9 +163,10 @@
     }
     function copyToken() {
         var copyText = document.getElementById("tokenField");
+        var token = `${copyText.value}`;
         copyText.select();
         copyText.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(copyText.value);
+        navigator.clipboard.writeText(token);
         var copyButton = document.getElementById("copy-btn");
         copyButton.innerText = "✓ Copied";
         sleep(2000).then(() => {
