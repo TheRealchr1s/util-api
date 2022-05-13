@@ -11,6 +11,7 @@ import secrets
 import uvloop
 import sentry_sdk
 from sentry_sdk.integrations.quart import QuartIntegration
+import datetime
 
 from blueprints.v1 import v1_api
 
@@ -72,12 +73,23 @@ app.discord = discord
 
 @app.before_request
 async def before_request_sentry():
-    user_data = {"ip_address": quart.request.headers.get("X-Forwarded-For")}
+    ipa = quart.request.headers.get("X-Forwarded-For")
+    user_data = {"ip_address": ipa}
+    k = ipa
     if await discord.authorized:
         user = await discord.fetch_user()
+        k = user.id
         user_data.update({"id": user.id, "username": str(user), "email": user.email})
     sentry_sdk.set_user(user_data)
     sentry_sdk.set_tag("User-Agent", quart.request.headers.get("User-Agent"))
+    if app.usage_cache.get(k):
+        if app.usage_cache.get(quart.request.path):
+            app.usage_cache[k][quart.request.path].append(datetime.datetime.utcnow())
+        else:
+            app.usage_cache[k][quart.request.path] = [datetime.datetime.utcnow()]
+    else:
+        app.usage_cache[k] = {quart.request.path: datetime.datetime.utcnow()}
+    print(app.usage_cache)
 
 @app.errorhandler(Unauthorized)
 async def redirect_unauthorized(e):

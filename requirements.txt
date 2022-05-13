@@ -6,3 +6,5 @@ quart-rate-limiter[redis]
 discord.py
 asyncpg
 uvloop
+sentry-sdk[flask]
+quart-cors
