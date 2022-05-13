@@ -63,14 +63,14 @@ async def commit_usage_data():
                     entries = []
                     to_del = []
                     current = await connection.fetch("SELECT * FROM usage;")
-                    for usr in app.usage_data:
-                        for endpi in app.usage_data[usr].values():
+                    for usr in app.usage_cache:
+                        for endpi in app.usage_cache[usr].values():
                             for row in current:
                                 curr_ind = 0
                                 if (row.get("endpoint") == endpi) and (row.get("id") == usr):
                                     curr_ind = row.get("count")
                                     to_del.append((row.get("endpoint"), row.get("id")))
-                                entries.append((endpi, usr, app.usage_data[usr][endpi]+curr_ind))
+                                entries.append((endpi, usr, app.usage_cache[usr][endpi]+curr_ind))
                     await connection.executemany("DELETE FROM usage WHERE endpoint=$1 AND id=$2;", to_del)
                     await connection.executemany("INSERT INTO usage VALUES ($1, $2, $3);", entries)
                 print(await connection.fetch("SELECT * FROM usage;"))
