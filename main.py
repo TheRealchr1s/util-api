@@ -38,24 +38,62 @@ else:
 
 app.token_cache = dict()
 app.usage_cache = dict()
+app.db = None
 
-if config.get("POSTGRES_URI"):
-    @app.before_serving
-    async def init_postgres():
-        app.db = await asyncpg.create_pool(config["POSTGRES_URI"])
-        async with app.db.acquire() as conn:
-            await conn.execute("CREATE TABLE IF NOT EXISTS tokens (token TEXT, id BIGINT);")
-            for entry in (await conn.fetch("SELECT * FROM tokens;")):
-                app.token_cache[entry.get("id")] = entry.get("token")
-else:
-    app.token_cache[246938839720001536] = "TESTING_PURPOSES"
+async def init_postgres():
+    if config.get("POSTGRES_URI"):
+            app.db = await asyncpg.create_pool(config["POSTGRES_URI"])
+            async with app.db.acquire() as conn:
+                await conn.execute("CREATE TABLE IF NOT EXISTS tokens (token TEXT, id BIGINT, email TEXT);")
+                await conn.execute("CREATE TABLE IF NOT EXISTS usage (endpoint TEXT, id BIGINT, count BIGINT);")
+                for entry in (await conn.fetch("SELECT * FROM tokens;")):
+                    app.token_cache[entry.get("id")] = entry.get("token")
+    else:
+        app.token_cache[246938839720001536] = "TESTING_PURPOSES"
+
+async def commit_usage_data():
+    try:
+        while True:
+            # await asyncio.sleep(1800)
+            await asyncio.sleep(10)
+            if not app.db:
+                return
+            async with quart.current_app.db.acquire() as connection:
+                async with connection.transaction():
+                    entries = []
+                    to_del = []
+                    current = await connection.fetch("SELECT * FROM usage;")
+                    for usr in app.usage_data:
+                        for endpi in app.usage_data[usr].values():
+                            for row in current:
+                                curr_ind = 0
+                                if (row.get("endpoint") == endpi) and (row.get("id") == usr):
+                                    curr_ind = row.get("count")
+                                    to_del.append((row.get("endpoint"), row.get("id")))
+                                entries.append((endpi, usr, app.usage_data[usr][endpi]+curr_ind))
+                    await connection.executemany("DELETE FROM usage WHERE endpoint=$1 AND id=$2;", to_del)
+                    await connection.executemany("INSERT INTO usage VALUES ($1, $2, $3);", entries)
+                print(await connection.fetch("SELECT * FROM usage;"))
+            await asyncio.sleep(100)
+    except asyncio.CancelledError:
+        pass
+
+@app.before_serving
+async def handle_tasks():
+    app.add_background_task(init_postgres)
+    app.add_background_task(commit_usage_data)
+
+@app.after_serving
+async def cleanup_tasks():
+    for tsk in app.background_tasks:
+        tsk.cancel()
 
 async def gen_token(user):
     token = secrets.token_urlsafe(15)
     async with quart.current_app.db.acquire() as connection:
             async with connection.transaction():
                 await connection.execute("DELETE FROM tokens WHERE id = $1;", user.id)
-                await connection.execute("INSERT INTO tokens VALUES ($1, $2);", token, user.id)
+                await connection.execute("INSERT INTO tokens VALUES ($1, $2, $3);", token, user.id, user.email)
     app.token_cache[user.id] = token
     return token
 
@@ -83,12 +121,12 @@ async def before_request_sentry():
     sentry_sdk.set_user(user_data)
     sentry_sdk.set_tag("User-Agent", quart.request.headers.get("User-Agent"))
     if app.usage_cache.get(k):
-        if app.usage_cache.get(quart.request.path):
-            app.usage_cache[k][quart.request.path].append(datetime.datetime.utcnow())
+        if app.usage_cache[k].get(quart.request.path):
+            app.usage_cache[k][quart.request.path] += 1
         else:
-            app.usage_cache[k][quart.request.path] = [datetime.datetime.utcnow()]
+            app.usage_cache[k][quart.request.path] = 1
     else:
-        app.usage_cache[k] = {quart.request.path: datetime.datetime.utcnow()}
+        app.usage_cache[k] = {quart.request.path: 1}
     # print(app.usage_cache)
 
 @app.errorhandler(Unauthorized)
