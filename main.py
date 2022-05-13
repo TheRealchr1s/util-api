@@ -52,6 +52,7 @@ async def init_postgres():
         app.token_cache[246938839720001536] = "TESTING_PURPOSES"
 
 async def commit_usage_data():
+    print("hi")
     try:
         while True:
             # await asyncio.sleep(1800)
