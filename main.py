@@ -89,7 +89,7 @@ async def before_request_sentry():
             app.usage_cache[k][quart.request.path] = [datetime.datetime.utcnow()]
     else:
         app.usage_cache[k] = {quart.request.path: datetime.datetime.utcnow()}
-    print(app.usage_cache)
+    # print(app.usage_cache)
 
 @app.errorhandler(Unauthorized)
 async def redirect_unauthorized(e):
