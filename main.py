@@ -51,14 +51,15 @@ async def init_postgres():
     else:
         app.token_cache[246938839720001536] = "TESTING_PURPOSES"
 
+app.logger.info("hi")
+
 async def commit_usage_data():
-    print("hi")
     try:
         while True:
             # await asyncio.sleep(1800)
             await asyncio.sleep(10)
-            if not app.db:
-                return
+            # if not app.db:
+            #     return
             async with quart.current_app.db.acquire() as connection:
                 async with connection.transaction():
                     entries = []
@@ -74,7 +75,7 @@ async def commit_usage_data():
                                 entries.append((endpi, usr, app.usage_cache[usr][endpi]+curr_ind))
                     await connection.executemany("DELETE FROM usage WHERE endpoint=$1 AND id=$2;", to_del)
                     await connection.executemany("INSERT INTO usage VALUES ($1, $2, $3);", entries)
-                print(await connection.fetch("SELECT * FROM usage;"))
+                app.logger.info(await connection.fetch("SELECT * FROM usage;"))
             await asyncio.sleep(100)
     except asyncio.CancelledError:
         pass
