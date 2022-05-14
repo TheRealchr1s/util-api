@@ -89,8 +89,10 @@ async def cleanup_tasks():
         tsk.cancel()
 
 async def gen_token(user):
+    if not app.db:
+        return app.token_cache.get(user.id)
     token = secrets.token_urlsafe(15)
-    async with quart.current_app.db.acquire() as connection:
+    async with app.db.acquire() as connection:
             async with connection.transaction():
                 await connection.execute("DELETE FROM tokens WHERE id = $1;", user.id)
                 await connection.execute("INSERT INTO tokens VALUES ($1, $2, $3);", token, user.id, user.email)
@@ -115,17 +117,7 @@ async def before_request_sentry():
     user_data = {"ip_address": ipa}
     if await discord.authorized:
         user = await discord.fetch_user()
-        k = user.id
         user_data.update({"id": user.id, "username": str(user), "email": user.email})
-
-        if quart.request.path != "/": # ignore index route for usage data
-            if app.usage_cache.get(k):
-                if app.usage_cache[k].get(quart.request.path):
-                    app.usage_cache[k][quart.request.path] += 1
-                else:
-                    app.usage_cache[k][quart.request.path] = 1
-            else:
-                app.usage_cache[k] = {quart.request.path: 1}
 
     sentry_sdk.set_user(user_data)
     sentry_sdk.set_tag("User-Agent", quart.request.headers.get("User-Agent"))
