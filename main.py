@@ -45,7 +45,7 @@ async def init_postgres():
             app.db = await asyncpg.create_pool(config["POSTGRES_URI"])
             async with app.db.acquire() as conn:
                 await conn.execute("CREATE TABLE IF NOT EXISTS tokens (token TEXT, id BIGINT, email TEXT);")
-                await conn.execute("CREATE TABLE IF NOT EXISTS usage (endpoint TEXT, id BIGINT, count BIGINT);")
+                await conn.execute("CREATE TABLE IF NOT EXISTS usage (endpoint TEXT, id BIGINT, count INTEGER);")
                 for entry in (await conn.fetch("SELECT * FROM tokens;")):
                     app.token_cache[entry.get("id")] = entry.get("token")
     else:
@@ -113,20 +113,22 @@ app.discord = discord
 async def before_request_sentry():
     ipa = quart.request.headers.get("X-Forwarded-For")
     user_data = {"ip_address": ipa}
-    k = ipa
     if await discord.authorized:
         user = await discord.fetch_user()
         k = user.id
         user_data.update({"id": user.id, "username": str(user), "email": user.email})
+
+        if quart.request.path != "/": # ignore index route for usage data
+            if app.usage_cache.get(k):
+                if app.usage_cache[k].get(quart.request.path):
+                    app.usage_cache[k][quart.request.path] += 1
+                else:
+                    app.usage_cache[k][quart.request.path] = 1
+            else:
+                app.usage_cache[k] = {quart.request.path: 1}
+
     sentry_sdk.set_user(user_data)
     sentry_sdk.set_tag("User-Agent", quart.request.headers.get("User-Agent"))
-    if app.usage_cache.get(k):
-        if app.usage_cache[k].get(quart.request.path):
-            app.usage_cache[k][quart.request.path] += 1
-        else:
-            app.usage_cache[k][quart.request.path] = 1
-    else:
-        app.usage_cache[k] = {quart.request.path: 1}
     # print(app.usage_cache)
 
 @app.errorhandler(Unauthorized)
