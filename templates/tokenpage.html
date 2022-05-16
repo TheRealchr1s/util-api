@@ -252,15 +252,14 @@
         {% endif %}
         {% if usage_data %}
         <hr>
-        <h4>Usage Statistics</h4>
+        <h2>Usage Statistics</h2><p class="subtext">Usage data is updated about every hour.</p>
         <div class="media-body"><div class="article-content container">
           <h6>Request Quota<br>{{ rqused }}/{{ rqtotal }} requests</h6><div class="progress" id="linked-rl">
-            <div class="progress-bar progress-bar-striped" role="progressbar" id="usage-pbar" style="width: {{ rqused/rqtotal }}%">{{ (rqused/rqtotal)|round|int }}%</div>
+            <div class="progress-bar progress-bar-striped" role="progressbar" id="usage-pbar" style="width: {{ rqused/rqtotal }}%;">{{ (rqused/rqtotal)|round|int }}%</div>
           </div><p class="subtext">Your request quota is reset every month.</p><ul class="list-group">
             {% for endp, count in usage_data %}
               <li class="list-group-item d-flex justify-content-between align-items-center" id="linked-rl">{{ endp }}<span class="badge badge-primary">{{ count }} requests</span></li>
             {% endfor %}
-            <p class="subtext">Usage data is updated approximately every hour.</p>
             </ul>
           </div>
         {% endif %}

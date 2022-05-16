@@ -184,7 +184,8 @@ async def token_route():
     #     token = (await connection.fetchrow("SELECT token FROM tokens WHERE id = $1", user.id)).get("token")
     if not token:
         token = await app.gen_token(user)
-    return await quart.render_template("tokenpage.html", token=token, usage_data=(await pull_usage(user)), rqused=3570, rqtotal=5000)
+    us_data = await pull_usage(user)
+    return await quart.render_template("tokenpage.html", token=token, usage_data=us_data, rqused=sum(ent[1] for ent in us_data), rqtotal=100)
 
 @app.route("/demo/<end>")
 @requires_authorization
