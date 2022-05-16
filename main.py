@@ -169,7 +169,7 @@ async def pull_usage(user):
         return app.tmp_usage[user.id]
     async with app.db.acquire() as connection:
         res = await connection.fetch("SELECT endpoint, count FROM usage WHERE id=$1;", user.id)
-        use = {record["endpoint"]: record["count"] for record in res}
+        use = [(record["endpoint"], record["count"]) for record in res]
         # all_endpoints = set(x.get("endpoint") for x in res)
         # use = {endp: sum(rec["endpoint"] == endp for rec in res) for endp in all_endpoints}
         app.tmp_usage[user.id] = use
