@@ -153,8 +153,17 @@
       width: 35ch;
     }
 
+    #linked-rl {
+      width: 30vw;
+      min-width: 35ch;
+    }
+
     .subtext {
       font-size: smaller;
+    }
+
+    #usage-pbar {
+      background-color: #4776E6;
     }
   </style>
   <script>
@@ -238,7 +247,24 @@
                 <input id="tokenField" readonly="readonly" type="text" class="form-control token-box" value="{{ token }}">
               </div><p class="subtext">Keep this token a secret! If necessary, regenerate it ASAP.<br>You will need to modify your config to use the new token.</p><div class="btn-group" role="group"><button id="copy-btn" class="btn btn-outline-primary" type="button" onclick="copyToken();">Copy to clipboard</button><button class="btn btn-outline-danger" type="button" id="reset-btn" onclick="resetToken();">⚠️ Regenerate</button></div>
         </div>
+        {% if not usage_data %}
         <p></p>
+        {% endif %}
+        {% if usage_data %}
+        <hr>
+        <h4>Usage Statistics</h4>
+        <div class="media-body"><div class="article-content container">
+          <h6>Request Quota<br>{{ rqused }}/{{ rqtotal }} requests</h6><div class="progress" id="linked-rl">
+            <div class="progress-bar progress-bar-striped" role="progressbar" id="usage-pbar" style="width: {{ rqused/rqtotal }}%">{{ round(rqused/rqtotal) }}%</div>
+          </div><p class="subtext">Your request quota is reset every month.</p><ul class="list-group">
+            {% for endp, count in usage_data %}
+              <li class="list-group-item d-flex justify-content-between align-items-center" id="linked-rl">{{ endp }}<span class="badge badge-primary">{{ count }} requests</span></li>
+            {% endfor %}
+            <p class="subtext">Usage data is updated approximately every hour.</p>
+            </ul>
+          </div>
+        {% endif %}
+        </div>
       </h1>
       </div>
     </article>

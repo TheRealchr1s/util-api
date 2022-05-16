@@ -38,6 +38,7 @@ else:
 
 app.token_cache = dict()
 app.usage_cache = dict()
+app.tmp_usage = dict()
 app.db = None
 
 async def init_postgres():
@@ -51,6 +52,14 @@ async def init_postgres():
     else:
         app.token_cache[246938839720001536] = "TESTING_PURPOSES"
 
+def human_format(num):
+    num = float("{:.3g}".format(num))
+    magnitude = 0
+    while abs(num) >= 1000:
+        magnitude += 1
+        num /= 1000.0
+    return "{}{}".format("{:f}".format(num).rstrip("0").rstrip("."), ["", "K", "M", "B", "T"][magnitude])
+
 async def commit_usage_data():
     try:
         await asyncio.sleep(10)
@@ -58,23 +67,32 @@ async def commit_usage_data():
             return
         while True:
             await asyncio.sleep(1800)
-            async with quart.current_app.db.acquire() as connection:
-                async with connection.transaction():
-                    entries = []
-                    to_del = []
-                    current = await connection.fetch("SELECT * FROM usage;")
-                    for usr in app.usage_cache:
-                        for endpi in app.usage_cache[usr].keys():
-                            curr_ind = 0
-                            for row in current:
-                                if (row.get("endpoint") == endpi) and (row.get("id") == usr):
-                                    curr_ind = row.get("count")
-                                    to_del.append((row.get("endpoint"), row.get("id")))
-                            entries.append((endpi, usr, app.usage_cache[usr][endpi]+curr_ind))
-                    await connection.executemany("DELETE FROM usage WHERE endpoint=$1 AND id=$2;", to_del)
-                    await connection.executemany("INSERT INTO usage VALUES ($1, $2, $3);", entries)
-                    app.logger.warn(await connection.fetch("SELECT * FROM usage;"))
-            app.usage_cache = dict()
+            if app.usage_cache:
+                async with quart.current_app.db.acquire() as connection:
+                    async with connection.transaction():
+                        entries = []
+                        to_del = []
+                        current = await connection.fetch("SELECT * FROM usage;")
+                        for usr in app.usage_cache:
+                            for endpi in app.usage_cache[usr].keys():
+                                curr_ind = 0
+                                for row in current:
+                                    if (row.get("endpoint") == endpi) and (row.get("id") == usr):
+                                        curr_ind = row.get("count")
+                                        to_del.append((row.get("endpoint"), row.get("id")))
+                                entries.append((endpi, usr, app.usage_cache[usr][endpi]+curr_ind))
+                        await connection.executemany("DELETE FROM usage WHERE endpoint=$1 AND id=$2;", to_del)
+                        await connection.executemany("INSERT INTO usage VALUES ($1, $2, $3);", entries)
+                        app.logger.warn(await connection.fetch("SELECT * FROM usage;"))
+                app.usage_cache = dict()
+    except asyncio.CancelledError:
+        pass
+
+async def clear_usage_temp():
+    try:
+        while True:
+            await asyncio.sleep(1800)
+            app.tmp_usage = {}
     except asyncio.CancelledError:
         pass
 
@@ -82,6 +100,7 @@ async def commit_usage_data():
 async def handle_tasks():
     app.add_background_task(init_postgres)
     app.add_background_task(commit_usage_data)
+    app.add_background_task(clear_usage_temp)
 
 @app.after_serving
 async def cleanup_tasks():
@@ -143,6 +162,19 @@ async def callback():
     await discord.callback()
     return quart.redirect(quart.url_for("index"))
 
+async def pull_usage(user):
+    if not app.db:
+        return
+    if app.tmp_usage.get(user.id):
+        return app.tmp_usage[user.id]
+    async with app.db.acquire() as connection:
+        res = await connection.fetch("SELECT endpoint, count FROM usage WHERE id=$1;", user.id)
+        use = {record["endpoint"]: record["count"] for record in res}
+        # all_endpoints = set(x.get("endpoint") for x in res)
+        # use = {endp: sum(rec["endpoint"] == endp for rec in res) for endp in all_endpoints}
+        app.tmp_usage[user.id] = use
+        return use
+
 @app.route("/token")
 @requires_authorization
 async def token_route():
@@ -152,7 +184,7 @@ async def token_route():
     #     token = (await connection.fetchrow("SELECT token FROM tokens WHERE id = $1", user.id)).get("token")
     if not token:
         token = await app.gen_token(user)
-    return await quart.render_template("tokenpage.html", token=token)
+    return await quart.render_template("tokenpage.html", token=token, usage_data=(await pull_usage(user)), rqused=3570, rqtotal=5000)
 
 @app.route("/demo/<end>")
 @requires_authorization
