@@ -169,6 +169,16 @@
     .endpoint-li-item {
       margin: 0;
     }
+
+    .pbar-anim {
+      animation: progressBar 3s ease-in-out;
+      animation-fill-mode: both;
+    }
+    
+    @keyframes progressBar {
+      0% { width: 0; }
+      100% { width: {{ (rqused/rqtotal)*100 }}% }
+    }
   </style>
   <script>
     function sleep(time) {
@@ -260,7 +270,7 @@
         <div class="media-body">
           <div class="article-content container">
             <h6>Request Quota - {{ rqused }}/{{ rqtotal }} requests</h6><div class="progress" id="linked-rl">
-            <div class="progress-bar progress-bar-striped" role="progressbar" id="usage-pbar" style="width: {{ (rqused/rqtotal)*100 }}%">{{ ((rqused/rqtotal)*100)|round|int }}%</div>
+            <div class="progress-bar progress-bar-striped pbar-anim" role="progressbar" id="usage-pbar">{{ ((rqused/rqtotal)*100)|round|int }}%</div>
           </div><p class="subtext">Your request quota is reset every month.</p><ul class="list-group">
             <h6>Usage by endpoint</h6>
             {% for endp, count in usage_data %}
