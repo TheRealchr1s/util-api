@@ -31,17 +31,15 @@ async def postrequest_usage(response):
         return response
     # if not (await app.discord.authorized):
     #     return response
-
-    try:
-        # user = await app.discord.fetch_user()
-        usrid = list(app.token_cache.keys())[ list(app.token_cache.values()).index(quart.request.headers["Authorization"]) ]
-        if app.usage_cache.get(usrid):
-            if app.usage_cache[usrid].get(quart.request.path):
-                app.usage_cache[usrid][quart.request.path] += 1
-            else:
-                app.usage_cache[usrid][quart.request.path] = 1
+    app.logger.warn("hi")
+    # user = await app.discord.fetch_user()
+    usrid = list(app.token_cache.keys())[ list(app.token_cache.values()).index(quart.request.headers["Authorization"]) ]
+    if app.usage_cache.get(usrid):
+        if app.usage_cache[usrid].get(quart.request.path):
+            app.usage_cache[usrid][quart.request.path] += 1
         else:
-            app.usage_cache[usrid] = {quart.request.path: 1}
-    except:
-        pass
+            app.usage_cache[usrid][quart.request.path] = 1
+    else:
+        app.usage_cache[usrid] = {quart.request.path: 1}
+
     return response
