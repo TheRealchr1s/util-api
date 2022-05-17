@@ -41,5 +41,5 @@ async def postrequest_usage(response):
             app.usage_cache[usrid][quart.request.path] = 1
     else:
         app.usage_cache[usrid] = {quart.request.path: 1}
-
+    app.logger.warn(app.usage_cache)
     return response

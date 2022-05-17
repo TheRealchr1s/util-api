@@ -62,9 +62,6 @@ def human_format(num):
 
 async def commit_usage_data():
     try:
-        await asyncio.sleep(10)
-        if not app.db:
-            return
         while True:
             await asyncio.sleep(1800)
             if app.usage_cache:
@@ -85,7 +82,7 @@ async def commit_usage_data():
                         await connection.executemany("INSERT INTO usage VALUES ($1, $2, $3);", entries)
                         app.logger.warn(await connection.fetch("SELECT * FROM usage;"))
                 app.usage_cache = dict()
-    except asyncio.CancelledError:
+    except:
         pass
 
 async def clear_usage_temp():
